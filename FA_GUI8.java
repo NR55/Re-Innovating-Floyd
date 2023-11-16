@@ -10,13 +10,15 @@ import javax.swing.table.TableColumn;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.*;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-public class FA_GUI6 {
+public class FA_GUI8 {
     private static final int INF = Integer.MAX_VALUE / 2;
 
     private JFrame frame;
@@ -31,12 +33,13 @@ public class FA_GUI6 {
 
     private int[][] graph;
     private int[][] shortests;
+    int edges;
     private Map<Integer, String> vertexNames;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
-                new FA_GUI6().initialize();
+                new FA_GUI8().initialize();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -58,13 +61,41 @@ public class FA_GUI6 {
         vertexNames = readVertexNames("vertex_names.txt");
 
         Scanner scanner = new Scanner(new File("input.txt"));
-        int edges = scanner.nextInt();
+        edges = countLines("input.txt");
 
         String[] vertexLabels = new String[vertexNames.size()];
         int vertexIndex = 0;
 
         for (Map.Entry<Integer, String> entry : vertexNames.entrySet()) {
             vertexLabels[vertexIndex++] = entry.getValue();
+        }
+
+        int vertices = vertexNames.size();
+        graph = new int[vertices][vertices];
+        shortests = new int[vertices][vertices];
+
+        for (int i = 0; i < vertices; i++) {
+            for (int j = 0; j < vertices; j++) {
+                graph[i][j] = (i == j) ? 0 : INF;
+                shortests[i][j] = (i == j) ? 0 : INF;
+            }
+        }
+
+        for (int i = 0; i < edges; i++) {
+            int sourceId = scanner.nextInt();
+            int weight = scanner.nextInt();
+            int destinationId = scanner.nextInt();
+
+            int sourceVertex = sourceId - 1;
+            int destinationVertex = destinationId - 1;
+
+            if (sourceVertex >= 0 && sourceVertex < vertices && destinationVertex >= 0
+                    && destinationVertex < vertices) {
+                graph[sourceVertex][destinationVertex] = weight;
+                graph[destinationVertex][sourceVertex] = weight;
+            } else {
+                System.err.println("Invalid vertex indices in input file");
+            }
         }
 
         sourceComboBox = new JComboBox<>(vertexLabels);
@@ -106,46 +137,14 @@ public class FA_GUI6 {
         JScrollPane scrollPane = new JScrollPane(outputTextArea);
         selectionPanel.add(scrollPane);
 
-        int vertices = vertexNames.size();
-        graph = new int[vertices][vertices];
-        shortests = new int[vertices][vertices];
-
-        for (int i = 0; i < vertices; i++) {
-            for (int j = 0; j < vertices; j++) {
-                graph[i][j] = (i == j) ? 0 : INF;
-                shortests[i][j] = (i == j) ? 0 : INF;
-            }
-        }
-
-        for (int i = 0; i < edges; i++) {
-            int sourceId = scanner.nextInt();
-            int weight = scanner.nextInt();
-            int destinationId = scanner.nextInt();
-
-            int sourceVertex = sourceId - 1;
-            int destinationVertex = destinationId - 1;
-
-            if (sourceVertex >= 0 && sourceVertex < vertices && destinationVertex >= 0
-                    && destinationVertex < vertices) {
-                graph[sourceVertex][destinationVertex] = weight;
-                graph[destinationVertex][sourceVertex] = weight;
-            } else {
-                System.err.println("Invalid vertex indices in input file");
-            }
-        }
-
         scanner.close();
 
         performFloydWarshall();
 
-        addCitiesTab();
-        addPathsTab();
-
         tabbedPane.addTab("Node Selection", selectionPanel);
         tabbedPane.addTab("Graph", graphPanel);
-        tabbedPane.addTab("Cities", new JScrollPane(citiesTable));
-        tabbedPane.addTab("Paths", new JScrollPane(pathsTable));
-
+        addCitiesTab();
+        addPathsTab();
         frame.add(tabbedPane);
         frame.setVisible(true);
     }
@@ -192,7 +191,7 @@ public class FA_GUI6 {
         DefaultTableModel citiesTableModel = new DefaultTableModel(citiesData, citiesHeaders) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column >= 2; // Allow editing for rename and delete columns only
+                return column >= 2;
             }
         };
 
@@ -200,10 +199,43 @@ public class FA_GUI6 {
         citiesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         citiesTable.setAutoCreateRowSorter(true);
         citiesTable.getTableHeader().setReorderingAllowed(false);
+        JButton addCityButton = new JButton("Add City");
+        addCityButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String newCityName = JOptionPane.showInputDialog(frame, "Enter new city name:");
+
+                if (newCityName != null && !newCityName.trim().isEmpty()) {
+                    try {
+                        BufferedWriter writer = new BufferedWriter(new FileWriter("vertex_names.txt", true));
+                        int newCityId = citiesTable.getRowCount() + 1;
+                        writer.write(newCityId + " " + newCityName);
+                        writer.newLine();
+                        writer.close();
+                        frame.dispose();
+                        SwingUtilities.invokeLater(() -> {
+                            try {
+                                new FA_GUI8().initialize();
+                            } catch (FileNotFoundException e1) {
+                                e1.printStackTrace();
+                            }
+                        });
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        });
 
         TableColumn renameColumn = citiesTable.getColumnModel().getColumn(2);
         renameColumn.setCellRenderer(new ButtonRenderer());
         renameColumn.setCellEditor(new ButtonEditor(new JTextField(), frame));
+
+        JPanel citiesPanel = new JPanel(new BorderLayout());
+        JScrollPane citiesScrollPane = new JScrollPane(citiesTable);
+        citiesPanel.add(citiesScrollPane, BorderLayout.CENTER);
+        citiesPanel.add(addCityButton, BorderLayout.SOUTH);
+        tabbedPane.addTab("Cities", citiesPanel);
     }
 
     private void addPathsTab() throws FileNotFoundException {
@@ -221,14 +253,70 @@ public class FA_GUI6 {
         pathsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         pathsTable.setAutoCreateRowSorter(true);
         pathsTable.getTableHeader().setReorderingAllowed(false);
+
+        JButton addPathButton = new JButton("Add Path");
+        addPathButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String[] options = vertexNames.values().toArray(new String[0]);
+                String source = (String) JOptionPane.showInputDialog(frame,
+                        "Select Source City:", "Add New Path",
+                        JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+
+                String destination = (String) JOptionPane.showInputDialog(frame,
+                        "Select Destination City:", "Add New Path",
+                        JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+
+                String distanceInput = JOptionPane.showInputDialog(frame, "Enter the distance:");
+
+                if (source != null && destination != null && distanceInput != null) {
+                    int sourceID = getKeyByValue(vertexNames, source);
+                    int destinationID = getKeyByValue(vertexNames, destination);
+
+                    if (sourceID != -1 && destinationID != -1 && sourceID != destinationID) {
+                        try {
+                            int distance = Integer.parseInt(distanceInput);
+                            BufferedWriter writer = new BufferedWriter(new FileWriter("input.txt", true));
+                            writer.write(sourceID + " " + distance + " " + destinationID);
+                            writer.newLine();
+                            writer.close();
+
+                            DefaultTableModel model = (DefaultTableModel) pathsTable.getModel();
+                            Object[] newRow = { source, distance, destination };
+                            model.addRow(newRow);
+                        } catch (NumberFormatException ex) {
+                            JOptionPane.showMessageDialog(frame,
+                                    "Invalid distance format. Please enter a valid number.");
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    } else if (sourceID == destinationID) {
+                        JOptionPane.showMessageDialog(frame, "Source and destination cities cannot be the same.");
+                    }
+                }
+                frame.dispose();
+                SwingUtilities.invokeLater(() -> {
+                    try {
+                        new FA_GUI8().initialize();
+                    } catch (FileNotFoundException e1) {
+                        e1.printStackTrace();
+                    }
+                });
+            }
+        });
+
+        JPanel pathsPanel = new JPanel(new BorderLayout());
+        JScrollPane pathsScrollPane = new JScrollPane(pathsTable);
+        pathsPanel.add(pathsScrollPane, BorderLayout.CENTER);
+        pathsPanel.add(addPathButton, BorderLayout.SOUTH);
+        tabbedPane.addTab("Paths", pathsPanel);
     }
 
     private Object[][] readPathsFromFile(String fileName) throws FileNotFoundException {
         Scanner scanner = new Scanner(new File(fileName));
-        int rows = scanner.nextInt();
-        Object[][] data = new Object[rows][3];
+        Object[][] data = new Object[edges][3];
 
-        for (int i = 0; i < rows; i++) {
+        for (int i = 0; i < edges; i++) {
             int sourceID = scanner.nextInt();
             int weight = scanner.nextInt();
             int destinationID = scanner.nextInt();
@@ -307,8 +395,8 @@ public class FA_GUI6 {
                 String cityName = JOptionPane.showInputDialog(parentFrame, "Enter new city name:");
                 if (cityName != null && !cityName.trim().isEmpty()) {
                     int selectedRow = citiesTable.getSelectedRow();
-                    citiesTable.getModel().setValueAt(cityName, selectedRow, 1); // Update city name in table
-                    updateCityNameInFile(selectedRow + 1, cityName); // Update city name in file
+                    citiesTable.getModel().setValueAt(cityName, selectedRow, 1);
+                    updateCityNameInFile(selectedRow + 1, cityName);
                 }
             });
         }
@@ -332,22 +420,29 @@ public class FA_GUI6 {
 
         try {
             List<String> lines = Files.readAllLines(filePath);
-            System.out.println(lines.size());
 
-            // Update the line corresponding to the provided cityId
             if (cityId > 0 && cityId <= lines.size()) {
                 lines.set(cityId - 1, cityId + " " + newName);
                 Files.write(filePath, lines);
                 System.out.println("City name updated successfully in the file.");
-                frame.dispose(); // Close the current JFrame
-                frame = new JFrame("Floyd's Algorithm GUI"); // Reopen the JFrame
-                initialize(); // Reinitialize the GUI components
+                frame.dispose();
+                frame = new JFrame("Floyd's Algorithm GUI");
+                initialize();
             } else {
                 System.err.println("City ID is out of range.");
             }
         } catch (IOException e) {
             System.err.println("Error occurred while updating city name in the file: " + e.getMessage());
         }
+    }
+
+    private int getKeyByValue(Map<Integer, String> map, String value) {
+        for (Map.Entry<Integer, String> entry : map.entrySet()) {
+            if (entry.getValue().equals(value)) {
+                return entry.getKey();
+            }
+        }
+        return -1;
     }
 
     private class GraphPanel extends JPanel {
