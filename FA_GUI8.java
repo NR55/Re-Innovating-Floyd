@@ -118,12 +118,16 @@ public class FA_GUI8 {
                         sourceVertex < vertexNames.size() && destinationVertex < vertexNames.size()) {
 
                     int shortestDistance = shortests[sourceVertex][destinationVertex];
-
                     String sourceName = vertexNames.get(sourceVertex + 1);
                     String destinationName = vertexNames.get(destinationVertex + 1);
-
-                    outputTextArea.setText("Shortest distance between " + sourceName + " and " + destinationName + ": "
-                            + shortestDistance);
+                    if (shortestDistance == INF) {
+                        outputTextArea
+                                .setText("No valid path between " + sourceName + " and " + destinationName + ".");
+                    } else {
+                        outputTextArea
+                                .setText("Shortest distance between " + sourceName + " and " + destinationName + ": "
+                                        + shortestDistance);
+                    }
                 } else {
                     outputTextArea.setText("Invalid source or destination vertex selected.");
                 }
@@ -161,13 +165,25 @@ public class FA_GUI8 {
         for (int k = 0; k < vertices; k++) {
             for (int i = 0; i < vertices; i++) {
                 for (int j = 0; j < vertices; j++) {
-                    if (shortests[i][k] != INF && shortests[k][j] != INF
+                    if (shortests[i][k] != INF && shortests[k][j] != INF && i != k && j != k
                             && shortests[i][k] + shortests[k][j] < shortests[i][j]) {
                         shortests[i][j] = shortests[i][k] + shortests[k][j];
                     }
                 }
             }
         }
+
+        // for (int k = 0; k < vertices; k++) {
+        // for (int i = 1; i < vertices; i++) {
+        // for (int j = 0; j < i; j++) {
+        // if (shortests[i][k] != INF && shortests[k][j] != INF
+        // && shortests[i][k] + shortests[k][j] < shortests[i][j]) {
+        // shortests[i][j] = shortests[i][k] + shortests[k][j];
+        // shortests[j][i] = shortests[i][j];
+        // }
+        // }
+        // }
+        // }
     }
 
     private Map<Integer, String> readVertexNames(String fileName) throws FileNotFoundException {
