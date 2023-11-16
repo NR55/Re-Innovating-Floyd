@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-public class FA_GUI8 {
+public class FA_GUI9 {
     private static final int INF = Integer.MAX_VALUE / 2;
 
     private JFrame frame;
@@ -39,7 +39,7 @@ public class FA_GUI8 {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
-                new FA_GUI8().initialize();
+                new FA_GUI9().initialize();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -163,11 +163,12 @@ public class FA_GUI8 {
         }
 
         for (int k = 0; k < vertices; k++) {
-            for (int i = 0; i < vertices; i++) {
-                for (int j = 0; j < vertices; j++) {
-                    if (shortests[i][k] != INF && shortests[k][j] != INF
+            for (int i = 1; i < vertices; i++) {
+                for (int j = 0; j < i; j++) {
+                    if (shortests[i][k] != INF && shortests[k][j] != INF && i != k && j != k
                             && shortests[i][k] + shortests[k][j] < shortests[i][j]) {
                         shortests[i][j] = shortests[i][k] + shortests[k][j];
+                        shortests[j][i] = shortests[i][j];
                     }
                 }
             }
@@ -219,7 +220,7 @@ public class FA_GUI8 {
                         frame.dispose();
                         SwingUtilities.invokeLater(() -> {
                             try {
-                                new FA_GUI8().initialize();
+                                new FA_GUI9().initialize();
                             } catch (FileNotFoundException e1) {
                                 e1.printStackTrace();
                             }
@@ -301,7 +302,7 @@ public class FA_GUI8 {
                 frame.dispose();
                 SwingUtilities.invokeLater(() -> {
                     try {
-                        new FA_GUI8().initialize();
+                        new FA_GUI9().initialize();
                     } catch (FileNotFoundException e1) {
                         e1.printStackTrace();
                     }
