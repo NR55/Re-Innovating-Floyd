@@ -2,6 +2,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -162,10 +164,11 @@ public class FA_GUI9 {
             }
         }
 
+        LocalDateTime startTime = LocalDateTime.now();
         for (int k = 0; k < vertices; k++) {
             for (int i = 1; i < vertices; i++) {
                 for (int j = 0; j < i; j++) {
-                    if (shortests[i][k] != INF && shortests[k][j] != INF && i != k && j != k
+                    if (shortests[i][k] != INF && shortests[k][j] != INF
                             && shortests[i][k] + shortests[k][j] < shortests[i][j]) {
                         shortests[i][j] = shortests[i][k] + shortests[k][j];
                         shortests[j][i] = shortests[i][j];
@@ -173,6 +176,9 @@ public class FA_GUI9 {
                 }
             }
         }
+        LocalDateTime endTime = LocalDateTime.now();
+        Duration duration = Duration.between(startTime, endTime);
+        System.out.println("Time Difference: " + duration.toNanos() + "ns");
     }
 
     private Map<Integer, String> readVertexNames(String fileName) throws FileNotFoundException {

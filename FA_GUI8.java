@@ -17,6 +17,8 @@ import java.io.FileWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.time.LocalDateTime;
+import java.time.Duration;
 
 public class FA_GUI8 {
     private static final int INF = Integer.MAX_VALUE / 2;
@@ -162,6 +164,7 @@ public class FA_GUI8 {
             }
         }
 
+        LocalDateTime startTime = LocalDateTime.now();
         for (int k = 0; k < vertices; k++) {
             for (int i = 0; i < vertices; i++) {
                 for (int j = 0; j < vertices; j++) {
@@ -172,6 +175,10 @@ public class FA_GUI8 {
                 }
             }
         }
+        LocalDateTime endTime = LocalDateTime.now();
+        Duration duration = Duration.between(startTime, endTime);
+        System.out.println("Time Difference: " + duration.toNanos() + "ns");
+
     }
 
     private Map<Integer, String> readVertexNames(String fileName) throws FileNotFoundException {
