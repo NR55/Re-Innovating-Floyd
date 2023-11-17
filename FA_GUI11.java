@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-public class FA_GUI9 {
+public class FA_GUI11 {
     private static final int INF = Integer.MAX_VALUE / 2;
 
     private JFrame frame;
@@ -41,7 +41,7 @@ public class FA_GUI9 {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
-                new FA_GUI9().initialize();
+                new FA_GUI11().initialize();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -226,7 +226,7 @@ public class FA_GUI9 {
                         frame.dispose();
                         SwingUtilities.invokeLater(() -> {
                             try {
-                                new FA_GUI9().initialize();
+                                new FA_GUI11().initialize();
                             } catch (FileNotFoundException e1) {
                                 e1.printStackTrace();
                             }
@@ -308,7 +308,7 @@ public class FA_GUI9 {
                 frame.dispose();
                 SwingUtilities.invokeLater(() -> {
                     try {
-                        new FA_GUI9().initialize();
+                        new FA_GUI11().initialize();
                     } catch (FileNotFoundException e1) {
                         e1.printStackTrace();
                     }
