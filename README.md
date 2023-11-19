@@ -1,7 +1,5 @@
 # Re-Innovating-Floyd
 
----
-
 Contributors : Nandan Ramesh, Sanjeev Holla
 
 ---
