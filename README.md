@@ -1,7 +1,5 @@
 # Re-Innovating-Floyd
 
-Innovative Algos Only.
-
 ---
 
 Contributors : Nandan Ramesh, Sanjeev Holla
